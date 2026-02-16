@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+
+  <style>
+    body{
+      font-family: Arial;
+      text-align: center;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      padding-top: 100px;
+      color: white;
+    }
+
+    input{
+      width: 250px;
+      height: 35px;
+      margin: 10px;
+      font-size: 16px;
+    }
+
+    button{
+      width: 200px;
+      height: 40px;
+      background: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
+
+</head>
+<body>
+
+<h1>Login 🚀</h1>
+
+<input type="text" id="usuario" placeholder="Usuário"><br>
+<input type="password" id="senha" placeholder="Senha"><br>
+
+<button onclick="entrar()">Entrar</button>
+
+<p id="msg"></p>
+
+<script>
+
+function entrar(){
+
+  let usuario = document.getElementById("usuario").value;
+  let senha = document.getElementById("senha").value;
+
+  if(usuario == "restaurante" && senha == "123"){
+    window.location.href = "restaurante.html";
+  }
+  else if(usuario == "motoboy" && senha == "123"){
+    window.location.href = "motoboy.html";
+  }
+  else if(usuario == "admin" && senha == "123"){
+    window.location.href = "admin.html";
+  }
+  else{
+    document.getElementById("msg").innerHTML = "Usuário ou senha errado 😢";
+  }
+
+}
+
+</script>
+
+</body>
+</html>

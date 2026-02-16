@@ -1,80 +1,67 @@
-<script type="module">
-import { db } from "./firebase.js";
-import { 
-  collection, 
-  addDoc, 
-  onSnapshot,
-  query,
-  where,
-  updateDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Área Motoboy</title>
 
-let motoboyId = null;
+  <style>
+    body{
+      font-family: Arial;
+      text-align: center;
+      background: #e6f7ff;
+      padding-top: 50px;
+    }
 
-window.ficarOnline = async function(){
+    button{
+      width: 200px;
+      height: 40px;
+      margin-top: 20px;
+      background: orange;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 
-  const docRef = await addDoc(collection(db, "motoboys"), {
-    nome: document.getElementById("nome").value,
-    zona: document.getElementById("zona").value,
-    online: true,
-    recusas: 0,
-    ultimaRecusa: 0
-  });
+</head>
+<body>
 
-  motoboyId = docRef.id;
+<h1>Área Motoboy 🏍️</h1>
 
-  ouvirPedidos();
-};
+<div id="pedido"></div>
 
-function ouvirPedidos(){
+<a href="index.html">Voltar</a>
 
-  const q = query(
-    collection(db, "pedidos"),
-    where("motoboyId", "==", motoboyId),
-    where("status", "==", "enviado")
-  );
+<script>
 
-  onSnapshot(q, (snapshot) => {
-    snapshot.forEach(docSnap => {
+let pedido = JSON.parse(localStorage.getItem("pedidoAtual"));
 
-      const pedido = docSnap.data();
-
-      document.getElementById("info").innerHTML = `
-        <h3>Novo Pedido</h3>
-        Cliente: ${pedido.cliente}<br>
-        Endereço: ${pedido.endereco}<br><br>
-        <button onclick="aceitar('${docSnap.id}')">Aceitar</button>
-        <button onclick="recusar('${docSnap.id}')">Recusar</button>
-      `;
-    });
-  });
+function aceitarPedido(){
+  pedido.status = "Em Entrega 🚀";
+  localStorage.setItem("pedidoAtual", JSON.stringify(pedido));
+  mostrarPedido();
 }
 
-window.aceitar = async function(pedidoId){
-  await updateDoc(doc(db, "pedidos", pedidoId), {
-    status: "aceito"
-  });
+function mostrarPedido(){
+  if(pedido){
+    document.getElementById("pedido").innerHTML = 
+    `
+    <h3>Pedido</h3>
+    Cliente: ${pedido.cliente} <br>
+    Endereço: ${pedido.endereco} <br>
+    Valor: R$ ${pedido.valor} <br>
+    Status: ${pedido.status || "Aguardando Motoboy"} <br>
 
-  alert("Pedido aceito!");
+    ${!pedido.status ? '<button onclick="aceitarPedido()">Aceitar Pedido</button>' : ''}
+    `;
+  }else{
+    document.getElementById("pedido").innerHTML = "Nenhum pedido disponível 😴";
+  }
 }
 
-window.recusar = async function(pedidoId){
+mostrarPedido();
 
-  const agora = Date.now();
-
-  const motoRef = doc(db, "motoboys", motoboyId);
-
-  await updateDoc(motoRef, {
-    recusas: 1,
-    ultimaRecusa: agora
-  });
-
-  await updateDoc(doc(db, "pedidos", pedidoId), {
-    status: "aguardando",
-    motoboyId: null
-  });
-
-  alert("Pedido recusado!");
-}
 </script>
+
+</body>
+</html>

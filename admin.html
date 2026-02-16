@@ -1,12 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin</title>
+  <title>Painel Admin</title>
+
+  <style>
+    body{
+      font-family: Arial;
+      text-align: center;
+      background: #fff3e6;
+      padding-top: 50px;
+    }
+  </style>
+
 </head>
 <body>
 
-<h2>Painel Admin</h2>
-<p>Acompanhe pelo Firebase enquanto testamos.</p>
+<h1>Painel Admin 👑</h1>
+
+<div id="dados"></div>
+
+<a href="index.html">Voltar</a>
+
+<script>
+
+let pedido = JSON.parse(localStorage.getItem("pedidoAtual"));
+
+if(pedido){
+  document.getElementById("dados").innerHTML = 
+  `
+  Cliente: ${pedido.cliente} <br>
+  Endereço: ${pedido.endereco} <br>
+  Valor: R$ ${pedido.valor} <br>
+  Status: ${pedido.status || "Aguardando Motoboy"}
+  `;
+}else{
+  document.getElementById("dados").innerHTML = "Nenhum pedido no sistema 😴";
+}
+
+</script>
 
 </body>
 </html>

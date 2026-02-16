@@ -1,52 +1,36 @@
 <script type="module">
-import { db } from "./firebase.js";
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  where, 
-  updateDoc, 
-  doc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
+    authDomain: "entrega-chapeco.firebaseapp.com",
+    projectId: "entrega-chapeco",
+    storageBucket: "entrega-chapeco.firebasestorage.app",
+    messagingSenderId: "697262455182",
+    appId: "1:697262455182:web:28405a7efa733786e68cdf",
+
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 window.criarPedido = async function(){
 
-  const zona = document.getElementById("bairro").value;
+  let cliente = document.getElementById("cliente").value;
+  let endereco = document.getElementById("endereco").value;
+  let valor = document.getElementById("valor").value;
 
-  // 1️⃣ Criar pedido
-  const pedidoRef = await addDoc(collection(db, "pedidos"), {
-    cliente: document.getElementById("cliente").value,
-    endereco: document.getElementById("endereco").value,
-    zona: zona,
-    status: "aguardando",
-    criadoEm: Date.now(),
-    motoboyId: null
+  await addDoc(collection(db, "pedidos"), {
+    cliente: cliente,
+    endereco: endereco,
+    valor: valor,
+    status: "Aguardando Motoboy"
   });
 
-  // 2️⃣ Buscar motoboys online da mesma zona
-  const q = query(
-    collection(db, "motoboys"), 
-    where("online", "==", true),
-    where("zona", "==", zona)
-  );
+  alert("Pedido enviado para a nuvem ☁️🚀");
 
-  const snapshot = await getDocs(q);
-
-  if(snapshot.empty){
-    alert("Nenhum motoboy online nessa zona!");
-    return;
-  }
-
-  // 3️⃣ Escolher o primeiro disponível
-  const motoboyDoc = snapshot.docs[0];
-
-  // 4️⃣ Atualizar pedido com motoboy escolhido
-  await updateDoc(doc(db, "pedidos", pedidoRef.id), {
-    motoboyId: motoboyDoc.id,
-    status: "enviado"
-  });
-
-  alert("Pedido enviado para motoboy!");
 }
+
 </script>
