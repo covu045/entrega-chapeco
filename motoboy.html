@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Motoboy</title>
+</head>
+<body>
+
+<h2>Motoboy</h2>
+
+<input id="nome" placeholder="Seu Nome"><br>
+<input id="zona" placeholder="Sua Zona"><br><br>
+
+<button onclick="ficarOnline()">Ficar Online</button>
+
+<div id="info"></div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.ficarOnline = async function(){
+
+  await addDoc(collection(db, "motoboys"), {
+    nome: document.getElementById("nome").value,
+    zona: document.getElementById("zona").value,
+    online: true,
+    recusas: 0,
+    ultimaRecusa: 0
+  });
+
+  alert("Agora você está online!");
+}
+</script>
+
+</body>
+</html>

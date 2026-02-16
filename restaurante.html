@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Restaurante</title>
+</head>
+<body>
+
+<h2>Criar Pedido</h2>
+
+<input id="cliente" placeholder="Cliente"><br>
+<input id="endereco" placeholder="Endereço"><br>
+<input id="bairro" placeholder="Zona"><br><br>
+
+<button onclick="criarPedido()">Enviar Pedido</button>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.criarPedido = async function(){
+
+  await addDoc(collection(db, "pedidos"), {
+    cliente: document.getElementById("cliente").value,
+    endereco: document.getElementById("endereco").value,
+    zona: document.getElementById("bairro").value,
+    status: "aguardando",
+    criadoEm: Date.now()
+  });
+
+  alert("Pedido criado!");
+}
+</script>
+
+</body>
+</html>
