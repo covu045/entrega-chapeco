@@ -1,26 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Motoboy</title>
-</head>
-<body>
-
-<h2>Motoboy</h2>
-
-<input id="nome" placeholder="Seu Nome"><br>
-<input id="zona" placeholder="Sua Zona"><br><br>
-
-<button onclick="ficarOnline()">Ficar Online</button>
-
-<div id="info"></div>
-
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  collection, 
+  addDoc, 
+  onSnapshot,
+  query,
+  where,
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let motoboyId = null;
 
 window.ficarOnline = async function(){
 
-  await addDoc(collection(db, "motoboys"), {
+  const docRef = await addDoc(collection(db, "motoboys"), {
     nome: document.getElementById("nome").value,
     zona: document.getElementById("zona").value,
     online: true,
@@ -28,9 +22,59 @@ window.ficarOnline = async function(){
     ultimaRecusa: 0
   });
 
-  alert("Agora você está online!");
+  motoboyId = docRef.id;
+
+  ouvirPedidos();
+};
+
+function ouvirPedidos(){
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("motoboyId", "==", motoboyId),
+    where("status", "==", "enviado")
+  );
+
+  onSnapshot(q, (snapshot) => {
+    snapshot.forEach(docSnap => {
+
+      const pedido = docSnap.data();
+
+      document.getElementById("info").innerHTML = `
+        <h3>Novo Pedido</h3>
+        Cliente: ${pedido.cliente}<br>
+        Endereço: ${pedido.endereco}<br><br>
+        <button onclick="aceitar('${docSnap.id}')">Aceitar</button>
+        <button onclick="recusar('${docSnap.id}')">Recusar</button>
+      `;
+    });
+  });
+}
+
+window.aceitar = async function(pedidoId){
+  await updateDoc(doc(db, "pedidos", pedidoId), {
+    status: "aceito"
+  });
+
+  alert("Pedido aceito!");
+}
+
+window.recusar = async function(pedidoId){
+
+  const agora = Date.now();
+
+  const motoRef = doc(db, "motoboys", motoboyId);
+
+  await updateDoc(motoRef, {
+    recusas: 1,
+    ultimaRecusa: agora
+  });
+
+  await updateDoc(doc(db, "pedidos", pedidoId), {
+    status: "aguardando",
+    motoboyId: null
+  });
+
+  alert("Pedido recusado!");
 }
 </script>
-
-</body>
-</html>

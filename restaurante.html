@@ -1,35 +1,52 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Restaurante</title>
-</head>
-<body>
-
-<h2>Criar Pedido</h2>
-
-<input id="cliente" placeholder="Cliente"><br>
-<input id="endereco" placeholder="Endereço"><br>
-<input id="bairro" placeholder="Zona"><br><br>
-
-<button onclick="criarPedido()">Enviar Pedido</button>
-
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  query, 
+  where, 
+  updateDoc, 
+  doc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 window.criarPedido = async function(){
 
-  await addDoc(collection(db, "pedidos"), {
+  const zona = document.getElementById("bairro").value;
+
+  // 1️⃣ Criar pedido
+  const pedidoRef = await addDoc(collection(db, "pedidos"), {
     cliente: document.getElementById("cliente").value,
     endereco: document.getElementById("endereco").value,
-    zona: document.getElementById("bairro").value,
+    zona: zona,
     status: "aguardando",
-    criadoEm: Date.now()
+    criadoEm: Date.now(),
+    motoboyId: null
   });
 
-  alert("Pedido criado!");
+  // 2️⃣ Buscar motoboys online da mesma zona
+  const q = query(
+    collection(db, "motoboys"), 
+    where("online", "==", true),
+    where("zona", "==", zona)
+  );
+
+  const snapshot = await getDocs(q);
+
+  if(snapshot.empty){
+    alert("Nenhum motoboy online nessa zona!");
+    return;
+  }
+
+  // 3️⃣ Escolher o primeiro disponível
+  const motoboyDoc = snapshot.docs[0];
+
+  // 4️⃣ Atualizar pedido com motoboy escolhido
+  await updateDoc(doc(db, "pedidos", pedidoRef.id), {
+    motoboyId: motoboyDoc.id,
+    status: "enviado"
+  });
+
+  alert("Pedido enviado para motoboy!");
 }
 </script>
-
-</body>
-</html>
