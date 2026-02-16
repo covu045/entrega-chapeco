@@ -1,68 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Login</title>
-
+  <meta charset="UTF-8">
+  <title>Login Real 🚀</title>
   <style>
-    body{
-      font-family: Arial;
+    body {
+      font-family: Arial, sans-serif;
       text-align: center;
       background: linear-gradient(to right, #667eea, #764ba2);
       padding-top: 100px;
       color: white;
     }
-
-    input{
-      width: 250px;
-      height: 35px;
-      margin: 10px;
-      font-size: 16px;
-    }
-
-    button{
-      width: 200px;
-      height: 40px;
-      background: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
+    input { width: 250px; height: 35px; margin: 10px; font-size: 16px; border-radius: 5px; border: none; padding: 0 10px; }
+    button { width: 200px; height: 40px; background: white; border: none; cursor: pointer; font-size: 16px; font-weight: bold; border-radius: 5px; color: #764ba2; }
+    #msg { margin-top: 20px; font-weight: bold; }
   </style>
-
 </head>
 <body>
 
-<h1>Login 🚀</h1>
+<h1>Sistema de Entregas 🚀</h1>
 
-<input type="text" id="usuario" placeholder="Usuário"><br>
-<input type="password" id="senha" placeholder="Senha"><br>
+<input type="email" id="email" placeholder="Seu E-mail"><br>
+<input type="password" id="senha" placeholder="Sua Senha"><br>
 
 <button onclick="entrar()">Entrar</button>
 
 <p id="msg"></p>
 
-<script>
+<script type="module">
+  // 1. Conectar com o seu arquivo de configuração
+  import { auth, db } from "./js/firebase.js";
+  import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-function entrar(){
+  // 2. Função que roda quando você clica no botão
+  window.entrar = function() {
+    let email = document.getElementById("email").value;
+    let senha = document.getElementById("senha").value;
+    let msg = document.getElementById("msg");
 
-  let usuario = document.getElementById("usuario").value;
-  let senha = document.getElementById("senha").value;
+    msg.innerHTML = "Verificando...";
 
-  if(usuario == "restaurante" && senha == "123"){
-    window.location.href = "restaurante.html";
+    // Faz o login no Firebase Authentication
+    signInWithEmailAndPassword(auth, email, senha)
+      .then(() => {
+        msg.innerHTML = "Logado com sucesso!";
+      })
+      .catch((error) => {
+        msg.innerHTML = "Erro: Usuário não encontrado ou senha errada.";
+        console.error(error.message);
+      });
   }
-  else if(usuario == "motoboy" && senha == "123"){
-    window.location.href = "motoboy.html";
-  }
-  else if(usuario == "admin" && senha == "123"){
-    window.location.href = "admin.html";
-  }
-  else{
-    document.getElementById("msg").innerHTML = "Usuário ou senha errado 😢";
-  }
 
-}
+  // 3. O PORTEIRO: Quando o login der certo, ele olha o "tipo" no banco
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Vai na pasta "usuarios" e procura o documento com o ID igual ao UID do login
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
 
+      if (userSnap.exists()) {
+        const tipo = userSnap.data().tipo; // Pega o valor "admin", "motoboy" ou "restaurante"
+
+        // Redireciona para a página certa
+        if (tipo === "admin") {
+          window.location.href = "admin.html";
+        } else if (tipo === "motoboy") {
+          window.location.href = "motoboy.html";
+        } else if (tipo === "restaurante") {
+          window.location.href = "restaurante.html";
+        }
+      } else {
+        document.getElementById("msg").innerHTML = "Erro: Seu usuário não tem um cargo no banco de dados.";
+      }
+    }
+  });
 </script>
 
 </body>
