@@ -17,6 +17,16 @@
       margin: 20px;
       border-radius: 10px;
     }
+
+    button{
+      background: orange;
+      border: none;
+      padding: 10px;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 
@@ -31,7 +41,7 @@
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
@@ -51,22 +61,37 @@ onSnapshot(collection(db, "pedidos"), (snapshot) => {
 
   lista.innerHTML = "";
 
-  snapshot.forEach((doc) => {
+  snapshot.forEach((pedidoDoc) => {
 
-    const pedido = doc.data();
+    const pedido = pedidoDoc.data();
+    const id = pedidoDoc.id;
 
     lista.innerHTML += `
       <div class="pedido">
         Cliente: ${pedido.cliente} <br>
         Endereço: ${pedido.endereco} <br>
         Valor: R$ ${pedido.valor} <br>
-        Status: ${pedido.status}
+        Status: ${pedido.status} <br>
+
+        ${pedido.status === "Aguardando Motoboy"
+          ? `<button onclick="aceitar('${id}')">Aceitar Pedido</button>`
+          : ""}
       </div>
     `;
 
   });
 
 });
+
+window.aceitar = async function(id){
+
+  const pedidoRef = doc(db, "pedidos", id);
+
+  await updateDoc(pedidoRef, {
+    status: "Em Entrega 🚀"
+  });
+
+};
 
 </script>
 
