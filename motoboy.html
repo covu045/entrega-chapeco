@@ -11,55 +11,62 @@
       padding-top: 50px;
     }
 
-    button{
-      width: 200px;
-      height: 40px;
-      margin-top: 20px;
-      background: orange;
-      border: none;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
+    .pedido{
+      background: white;
+      padding: 20px;
+      margin: 20px;
+      border-radius: 10px;
     }
   </style>
-
 </head>
+
 <body>
 
 <h1>Área Motoboy 🏍️</h1>
 
-<div id="pedido"></div>
+<div id="listaPedidos"></div>
 
 <a href="index.html">Voltar</a>
 
-<script>
+<script type="module">
 
-let pedido = JSON.parse(localStorage.getItem("pedidoAtual"));
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-function aceitarPedido(){
-  pedido.status = "Em Entrega 🚀";
-  localStorage.setItem("pedidoAtual", JSON.stringify(pedido));
-  mostrarPedido();
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
+  authDomain: "entrega-chapeco.firebaseapp.com",
+  projectId: "entrega-chapeco",
+  storageBucket: "entrega-chapeco.firebasestorage.app",
+  messagingSenderId: "697262455182",
+  appId: "1:697262455182:web:28405a7efa733786e68cdf"
+};
 
-function mostrarPedido(){
-  if(pedido){
-    document.getElementById("pedido").innerHTML = 
-    `
-    <h3>Pedido</h3>
-    Cliente: ${pedido.cliente} <br>
-    Endereço: ${pedido.endereco} <br>
-    Valor: R$ ${pedido.valor} <br>
-    Status: ${pedido.status || "Aguardando Motoboy"} <br>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    ${!pedido.status ? '<button onclick="aceitarPedido()">Aceitar Pedido</button>' : ''}
+const lista = document.getElementById("listaPedidos");
+
+onSnapshot(collection(db, "pedidos"), (snapshot) => {
+
+  lista.innerHTML = "";
+
+  snapshot.forEach((doc) => {
+
+    const pedido = doc.data();
+
+    lista.innerHTML += `
+      <div class="pedido">
+        Cliente: ${pedido.cliente} <br>
+        Endereço: ${pedido.endereco} <br>
+        Valor: R$ ${pedido.valor} <br>
+        Status: ${pedido.status}
+      </div>
     `;
-  }else{
-    document.getElementById("pedido").innerHTML = "Nenhum pedido disponível 😴";
-  }
-}
 
-mostrarPedido();
+  });
+
+});
 
 </script>
 
