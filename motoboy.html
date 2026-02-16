@@ -1,31 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+  <meta charset="UTF-8">
   <title>Área Motoboy</title>
 
   <style>
-    body{
-      font-family: Arial;
+    body {
+      font-family: Arial, sans-serif;
       text-align: center;
       background: #e6f7ff;
-      padding-top: 50px;
+      padding: 20px;
     }
 
-    .pedido{
+    .pedido {
       background: white;
       padding: 20px;
-      margin: 20px;
+      margin: 15px auto;
       border-radius: 10px;
+      max-width: 400px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      line-height: 1.6;
     }
 
-    button{
-      background: orange;
+    button {
+      background: #ff9800;
       border: none;
-      padding: 10px;
+      padding: 10px 20px;
       color: white;
       cursor: pointer;
       border-radius: 5px;
       margin-top: 10px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #e68a00;
+    }
+
+    .voltar {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #007bff;
     }
   </style>
 </head>
@@ -34,66 +50,12 @@
 
 <h1>Área Motoboy 🏍️</h1>
 
-<div id="listaPedidos"></div>
+<div id="listaPedidos">Carregando pedidos...</div>
 
-<a href="index.html">Voltar</a>
+<a href="index.html" class="voltar">⬅ Voltar</a>
 
-<script type="module">
+<script type="module" src="js/motoboy.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
-  authDomain: "entrega-chapeco.firebaseapp.com",
-  projectId: "entrega-chapeco",
-  storageBucket: "entrega-chapeco.firebasestorage.app",
-  messagingSenderId: "697262455182",
-  appId: "1:697262455182:web:28405a7efa733786e68cdf"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const lista = document.getElementById("listaPedidos");
-
-onSnapshot(collection(db, "pedidos"), (snapshot) => {
-
-  lista.innerHTML = "";
-
-  snapshot.forEach((pedidoDoc) => {
-
-    const pedido = pedidoDoc.data();
-    const id = pedidoDoc.id;
-
-    lista.innerHTML += `
-      <div class="pedido">
-        Cliente: ${pedido.cliente} <br>
-        Endereço: ${pedido.endereco} <br>
-        Valor: R$ ${pedido.valor} <br>
-        Status: ${pedido.status} <br>
-
-        ${pedido.status === "Aguardando Motoboy"
-          ? `<button onclick="aceitar('${id}')">Aceitar Pedido</button>`
-          : ""}
-      </div>
-    `;
-
-  });
-
-});
-
-window.aceitar = async function(id){
-
-  const pedidoRef = doc(db, "pedidos", id);
-
-  await updateDoc(pedidoRef, {
-    status: "Em Entrega 🚀"
-  });
-
-};
-
-</script>
 
 </body>
 </html>
