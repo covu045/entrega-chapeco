@@ -1,46 +1,85 @@
-import { db } from "./firebase.js";
-import { collection, onSnapshot, doc, updateDoc } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import { 
+  onAuthStateChanged, 
+  signOut 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const lista = document.getElementById("listaPedidos");
+import { 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  updateDoc, 
+  doc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-onSnapshot(collection(db, "pedidos"), (snapshot) => {
 
-  lista.innerHTML = "";
+onAuthStateChanged(auth, (user) => {
 
-  snapshot.forEach((pedidoDoc) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-    const pedido = pedidoDoc.data();
-    const id = pedidoDoc.id;
-
-    lista.innerHTML += `
-      <div class="pedido">
-        <strong>Cliente:</strong> ${pedido.cliente || ""} <br>
-        <strong>Endereço:</strong> ${pedido.endereco || ""} <br>
-        <strong>Status:</strong> ${pedido.status || ""} <br>
-
-        ${
-          pedido.status === "em_rota"
-            ? `<button onclick="finalizarEntrega('${id}')">
-                 Finalizar Entrega
-               </button>`
-            : ""
-        }
-      </div>
-    `;
-  });
+  carregarPedidos();
 
 });
 
-window.finalizarEntrega = async function(id){
+
+function carregarPedidos(){
+
+  const lista = document.getElementById("listaPedidos");
+  lista.innerHTML = "Carregando pedidos...";
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("status", "==", "pendente")
+  );
+
+  onSnapshot(q, (snapshot) => {
+
+    lista.innerHTML = "";
+
+    if(snapshot.empty){
+      lista.innerHTML = "<p>Nenhum pedido disponível.</p>";
+      return;
+    }
+
+    snapshot.forEach((documento) => {
+
+      const pedido = documento.data();
+
+      lista.innerHTML += `
+        <li style="margin-bottom:20px;">
+          <strong>${pedido.cliente}</strong><br>
+          ${pedido.endereco}<br><br>
+          <button onclick="aceitarPedido('${documento.id}')">
+            Aceitar Pedido
+          </button>
+        </li>
+      `;
+    });
+
+  });
+
+}
+
+
+window.aceitarPedido = async function(id){
 
   const pedidoRef = doc(db, "pedidos", id);
 
   await updateDoc(pedidoRef, {
-    status: "entregue",
-    finalizadoEm: new Date()
+    status: "em_entega"
   });
 
-  alert("Entrega finalizada 🚀");
+  alert("Pedido aceito!");
 
-};
+}
+
+
+window.sair = function(){
+  signOut(auth).then(() => {
+    window.location.href = "login.html";
+  });
+}
