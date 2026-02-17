@@ -7,8 +7,7 @@ import {
   collection, 
   onSnapshot, 
   doc, 
-  updateDoc, 
-  deleteDoc 
+  updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Elementos da Tela
@@ -18,10 +17,10 @@ const somAlerta = document.getElementById("somAlerta");
 
 let pedidosNotificados = new Set();
 
-// 1. PROTEGER A PÁGINA (SÓ ENTRA LOGADO)
+// 1. PROTEGER A PÁGINA (MUDADO PARA index.html)
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "index.html"; // Redireciona para a nova tela de login
   } else {
     iniciarVigilanciaPedidos();
   }
@@ -38,6 +37,11 @@ function iniciarVigilanciaPedidos() {
       const pedido = docSnap.data();
       const id = docSnap.id;
 
+      // 🛑 FILTRO: Se o pedido já foi Recusado ou Entregue, ele não aparece na lista do motoboy
+      if (pedido.status === "Recusado" || pedido.status === "Entregue") {
+        return; 
+      }
+
       if (pedido.status === "Pendente") {
         pendentes++;
         if (!pedidosNotificados.has(id)) {
@@ -48,23 +52,25 @@ function iniciarVigilanciaPedidos() {
 
       // Criar o visual do pedido
       const li = document.createElement("li");
-      li.className = `pedido ${pedido.status === "Entregue" ? "entregue" : ""}`;
+      li.className = "pedido";
       
       let botoes = "";
       if (pedido.status === "Pendente") {
         botoes = `
-          <button onclick="aceitarPedido('${id}')" style="background:#28a745;">✅ Aceitar</button>
-          <button onclick="recusarPedido('${id}')" style="background:#dc3545;">❌ Recusar</button>
+          <button onclick="aceitarPedido('${id}')" style="background:#28a745; color:white; border:none; padding:10px; margin-right:5px; border-radius:5px; cursor:pointer;">✅ Aceitar</button>
+          <button onclick="recusarPedido('${id}')" style="background:#dc3545; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">❌ Recusar</button>
         `;
       } else if (pedido.status === "A caminho") {
-        botoes = `<button onclick="finalizarPedido('${id}')" style="background:#007bff;">🏁 Entregue</button>`;
+        botoes = `<button onclick="finalizarPedido('${id}')" style="background:#007bff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">🏁 Entregue</button>`;
       }
 
       li.innerHTML = `
-        <strong>👤 Cliente:</strong> ${pedido.cliente}<br>
-        <strong>📍 Endereço:</strong> ${pedido.endereco}<br>
-        <strong>📊 Status:</strong> ${pedido.status}<br>
-        <div style="margin-top:10px;">${botoes}</div>
+        <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff;">
+            <strong>👤 Cliente:</strong> ${pedido.cliente}<br>
+            <strong>📍 Endereço:</strong> ${pedido.endereco}<br>
+            <strong>📊 Status:</strong> <span style="color: ${pedido.status === 'Pendente' ? 'orange' : 'blue'}">${pedido.status}</span><br>
+            <div style="margin-top:10px;">${botoes}</div>
+        </div>
       `;
       listaPedidos.appendChild(li);
     });
@@ -88,6 +94,7 @@ window.recusarPedido = async (id) => {
   if (confirm("Deseja recusar este pedido?")) {
     pararAlerta();
     await updateDoc(doc(db, "pedidos", id), { status: "Recusado" });
+    // O pedido sumirá da tela automaticamente devido ao filtro lá em cima
   }
 };
 
@@ -96,15 +103,18 @@ window.finalizarPedido = async (id) => {
   alert("Entrega realizada!");
 };
 
+// MUDADO PARA index.html
 window.sair = () => {
-  signOut(auth).then(() => window.location.href = "login.html");
+  signOut(auth).then(() => {
+      window.location.href = "index.html";
+  });
 };
 
-// 4. CONTROLE DO SOM (TIN TIN TIN)
+// 4. CONTROLE DO SOM
 function tocarAlerta() {
   somAlerta.loop = true;
   somAlerta.play().catch(() => console.log("Clique na tela para habilitar o som"));
-  setTimeout(() => pararAlerta(), 30000); // Para após 30 seg
+  setTimeout(() => pararAlerta(), 30000); 
 }
 
 function pararAlerta() {
