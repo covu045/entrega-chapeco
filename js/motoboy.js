@@ -3,6 +3,7 @@ import {
   onAuthStateChanged, 
   signOut 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import { 
   collection, 
   onSnapshot, 
@@ -17,32 +18,36 @@ const somAlerta = document.getElementById("somAlerta");
 
 let pedidosNotificados = new Set();
 
-// 1. PROTEGER A PÁGINA (MUDADO PARA index.html)
+// 1) PROTEGER A PÁGINA
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "index.html"; // Redireciona para a nova tela de login
+    window.location.href = "index.html";
   } else {
     iniciarVigilanciaPedidos();
   }
 });
 
-// 2. ESCUTAR O BANCO DE DADOS EM TEMPO REAL
+// 2) ESCUTAR O BANCO EM TEMPO REAL
 function iniciarVigilanciaPedidos() {
+  if (!listaPedidos) return;
+
   onSnapshot(collection(db, "pedidos"), (snapshot) => {
     listaPedidos.innerHTML = "";
     let pendentes = 0;
     let novoPedidoDetectado = false;
 
     snapshot.forEach((docSnap) => {
-      const pedido = docSnap.data();
+      const pedido = docSnap.data() || {};
       const id = docSnap.id;
 
-      // 🛑 FILTRO: Se o pedido já foi Recusado ou Entregue, ele não aparece na lista do motoboy
-      if (pedido.status === "Recusado" || pedido.status === "Entregue") {
-        return; 
-      }
+      // ✅ NORMALIZA STATUS (pra nunca falhar)
+      const status = (pedido.status || "").toString().trim().toLowerCase();
 
-      if (pedido.status === "Pendente") {
+      // 🛑 FILTRO: Esconder recusado/entregue
+      if (status === "recusado" || status === "entregue") return;
+
+      // ✅ CONTAGEM + ALERTA
+      if (status === "pendente") {
         pendentes++;
         if (!pedidosNotificados.has(id)) {
           novoPedidoDetectado = true;
@@ -50,74 +55,99 @@ function iniciarVigilanciaPedidos() {
         }
       }
 
-      // Criar o visual do pedido
-      const li = document.createElement("li");
-      li.className = "pedido";
-      
-      let botoes = "";
-      if (pedido.status === "Pendente") {
-        botoes = `
-          <button onclick="aceitarPedido('${id}')" style="background:#28a745; color:white; border:none; padding:10px; margin-right:5px; border-radius:5px; cursor:pointer;">✅ Aceitar</button>
-          <button onclick="recusarPedido('${id}')" style="background:#dc3545; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">❌ Recusar</button>
+      // ✅ BOTÕES GARANTIDOS
+      let botoesHTML = "";
+      if (status === "pendente") {
+        botoesHTML = `
+          <button onclick="aceitarPedido('${id}')" style="background:#28a745; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; width:48%;">✅ Aceitar</button>
+          <button onclick="recusarPedido('${id}')" style="background:#dc3545; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; width:48%;">❌ Recusar</button>
         `;
-      } else if (pedido.status === "A caminho") {
-        botoes = `<button onclick="finalizarPedido('${id}')" style="background:#007bff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">🏁 Entregue</button>`;
+      } else if (status === "a caminho" || status === "acaminho") {
+        botoesHTML = `
+          <button onclick="finalizarPedido('${id}')" style="background:#007bff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; width:100%;">🏁 Entregue</button>
+        `;
       }
 
+      // ✅ FALLBACKS (não travar se pedido for antigo)
+      const nomeRestaurante = pedido.nomeRestaurante || "Nome não definido";
+      const enderecoLoja = pedido.enderecoRestaurante || "Endereço da loja não definido";
+      const cliente = pedido.cliente || "Sem nome";
+      const enderecoCliente = pedido.endereco || "Sem endereço";
+
+      const corStatus = status === "pendente" ? "orange" : "blue";
+      const statusBonito =
+        status === "pendente" ? "pendente" :
+        (status === "a caminho" || status === "acaminho") ? "A caminho" :
+        status || "Sem status";
+
+      const li = document.createElement("li");
+      li.className = "pedido";
       li.innerHTML = `
-        <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff;">
-            <strong>👤 Cliente:</strong> ${pedido.cliente}<br>
-            <strong>📍 Endereço:</strong> ${pedido.endereco}<br>
-            <strong>📊 Status:</strong> <span style="color: ${pedido.status === 'Pendente' ? 'orange' : 'blue'}">${pedido.status}</span><br>
-            <div style="margin-top:10px;">${botoes}</div>
+        <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); color:#333;">
+          
+          <div style="background: #764ba2; color: white; padding: 8px; border-radius: 5px; margin-bottom: 10px; font-weight: bold;">
+            🏬 Loja: ${nomeRestaurante}
+          </div>
+
+          <div style="margin-bottom:10px; line-height:1.6;">
+            <strong>📌 Endereço da Loja:</strong> ${enderecoLoja}<br>
+            <strong>👤 Cliente:</strong> ${cliente}<br>
+            <strong>📍 Endereço do Cliente:</strong> ${enderecoCliente}<br>
+            <strong>📊 Status:</strong> <span style="font-weight:bold; color:${corStatus}">${statusBonito}</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            ${botoesHTML}
+          </div>
         </div>
       `;
+
       listaPedidos.appendChild(li);
     });
 
-    contagemPedidos.textContent = `Pedidos Pendentes: ${pendentes}`;
-    
-    if (novoPedidoDetectado) {
-      tocarAlerta();
+    if (contagemPedidos) {
+      contagemPedidos.textContent = `Pedidos Pendentes: ${pendentes}`;
     }
+
+    if (novoPedidoDetectado) tocarAlerta();
   });
 }
 
-// 3. FUNÇÕES DE AÇÃO (BOTÕES)
+// 3) FUNÇÕES DE AÇÃO
 window.aceitarPedido = async (id) => {
   pararAlerta();
-  await updateDoc(doc(db, "pedidos", id), { status: "A caminho" });
+  await updateDoc(doc(db, "pedidos", id), { status: "a caminho" }); // ✅ minúsculo
   alert("Pedido aceito! Vá para o endereço.");
 };
 
 window.recusarPedido = async (id) => {
   if (confirm("Deseja recusar este pedido?")) {
     pararAlerta();
-    await updateDoc(doc(db, "pedidos", id), { status: "Recusado" });
-    // O pedido sumirá da tela automaticamente devido ao filtro lá em cima
+    await updateDoc(doc(db, "pedidos", id), { status: "recusado" }); // ✅ minúsculo
   }
 };
 
 window.finalizarPedido = async (id) => {
-  await updateDoc(doc(db, "pedidos", id), { status: "Entregue" });
+  await updateDoc(doc(db, "pedidos", id), { status: "entregue" }); // ✅ minúsculo
   alert("Entrega realizada!");
 };
 
-// MUDADO PARA index.html
 window.sair = () => {
-  signOut(auth).then(() => {
-      window.location.href = "index.html";
-  });
+  signOut(auth).then(() => window.location.href = "index.html");
 };
 
-// 4. CONTROLE DO SOM
+// 4) SOM (30s)
 function tocarAlerta() {
+  if (!somAlerta) return;
+
   somAlerta.loop = true;
   somAlerta.play().catch(() => console.log("Clique na tela para habilitar o som"));
-  setTimeout(() => pararAlerta(), 30000); 
+  setTimeout(() => pararAlerta(), 30000);
 }
 
 function pararAlerta() {
+  if (!somAlerta) return;
+
   somAlerta.pause();
   somAlerta.currentTime = 0;
 }

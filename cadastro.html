@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro de Restaurante 🍕</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Novo Restaurante 🍔</h1>
+
+        <input type="text" id="nomeLoja" placeholder="Nome do Restaurante (Ex: Pizzaria X)">
+
+        <!-- ✅ NOVO: Endereço da Loja -->
+        <input type="text" id="enderecoLoja" placeholder="Endereço da Loja (Ex: Rua Nereu Ramos 1234, E ou D, Palmital)">
+
+        <input type="email" id="email" placeholder="E-mail de Login">
+        <input type="password" id="senha" placeholder="Crie uma Senha">
+        
+        <button onclick="cadastrar()">Cadastrar Agora</button>
+        
+        <p id="msg"></p>
+        <a href="index.html" style="color: #764ba2; font-size: 14px;">Já tenho conta (Login)</a>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./js/firebase.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        window.cadastrar = async function() {
+            const nome = document.getElementById("nomeLoja").value.trim();
+            const enderecoLoja = document.getElementById("enderecoLoja").value.trim(); // ✅ NOVO
+            const email = document.getElementById("email").value.trim();
+            const senha = document.getElementById("senha").value;
+            const msg = document.getElementById("msg");
+
+            if(!nome || !enderecoLoja || !email || !senha) {
+                msg.style.color = "red";
+                msg.innerHTML = "Preencha tudo! ⚠️";
+                return;
+            }
+
+            try {
+                // 1) Cria o usuário no Firebase Auth
+                const resultado = await createUserWithEmailAndPassword(auth, email, senha);
+                const user = resultado.user;
+
+                // 2) Salva os detalhes do restaurante no Firestore
+                await setDoc(doc(db, "usuarios", user.uid), {
+                    nomeLoja: nome,
+                    enderecoLoja: enderecoLoja, // ✅ NOVO: salva o endereço da loja
+                    email: email,
+                    tipo: "restaurante",
+                    uid: user.uid,
+                    criadoEm: new Date()
+                });
+
+                msg.style.color = "green";
+                msg.innerHTML = "Cadastro feito com sucesso! 🎉";
+
+                // 3) Redireciona
+                setTimeout(() => window.location.href = "restaurante.html", 1200);
+
+            } catch (error) {
+                msg.style.color = "red";
+                msg.innerHTML = "Erro: " + error.message;
+                console.log(error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,63 +1,122 @@
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import { 
+  collection, addDoc, query, where, onSnapshot, doc, getDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ✅ Variáveis globais
 let usuarioAtual = null;
+let nomeDaMinhaLoja = "Carregando...";
+let dadosLoja = {}; // ✅ NOVO: guarda os dados da loja pra usar depois no criarPedido()
 
-// SEGURANÇA: Se não estiver logado, volta para o index.html
-onAuthStateChanged(auth, (user) => {
-    if(!user) {
-        window.location.href = "index.html";
-    } else {
-        usuarioAtual = user;
-        carregarMeusPedidos();
-    }
+// ✅ 1) “Porteiro” (quando loga, carrega dados da loja e pedidos)
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  usuarioAtual = user;
+
+  // Busca os dados do restaurante no Firestore
+  const userRef = doc(db, "usuarios", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    alert("Seu usuário não tem perfil no Firestore (usuarios).");
+    window.location.href = "login.html";
+    return;
+  }
+
+  // Só deixa entrar se for restaurante
+  const dados = userSnap.data();
+  if (dados.tipo !== "restaurante") {
+    alert("Você não é restaurante.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  dadosLoja = dados; // ✅ NOVO: salva os dados da loja numa variável global
+
+  // ✅ Aqui pegamos o nome real!
+  nomeDaMinhaLoja = dados.nomeLoja || "Minha Loja";
+
+  // Atualiza o título da aba
+  document.title = "Painel - " + nomeDaMinhaLoja;
+
+  // Se existir no HTML, mostra o nome
+  const el = document.getElementById("nomeRestaurante");
+  if (el) el.innerText = "Loja: " + nomeDaMinhaLoja;
+
+  carregarMeusPedidos();
 });
 
-// FUNÇÃO PARA CRIAR PEDIDO
-window.criarPedido = async function() {
-    const cliente = document.getElementById("cliente").value;
-    const endereco = document.getElementById("endereco").value;
 
-    if(!cliente || !endereco) return alert("Preencha o nome e o endereço!");
+// ✅ 2) Criar pedido (com nome e endereço da loja indo junto)
+window.criarPedido = async function () {
+  const clienteEl = document.getElementById("cliente");
+  const enderecoEl = document.getElementById("endereco");
 
-    try {
-        await addDoc(collection(db, "pedidos"), {
-            cliente,
-            endereco,
-            status: "Pendente",
-            restauranteId: usuarioAtual.uid,
-            dataCriacao: new Date()
-        });
-        document.getElementById("cliente").value = "";
-        document.getElementById("endereco").value = "";
-        alert("Pedido enviado com sucesso!");
-    } catch (e) {
-        console.error("Erro ao criar pedido:", e);
-    }
-}
+  const cliente = clienteEl?.value.trim();
+  const endereco = enderecoEl?.value.trim();
 
-// CARREGAR PEDIDOS EM TEMPO REAL
+  if (!cliente || !endereco) {
+    alert("Preencha cliente e endereço!");
+    return;
+  }
+
+  await addDoc(collection(db, "pedidos"), {
+    cliente,
+    endereco,
+    status: "pendente",
+    restauranteId: usuarioAtual.uid,
+    nomeRestaurante: nomeDaMinhaLoja,
+
+    // ✅ NOVO: endereço da loja indo junto no pedido
+    enderecoRestaurante: dadosLoja.enderecoLoja || "Endereço da loja não cadastrado",
+
+    criadoEm: new Date()
+  });
+
+  // Limpa campos
+  if (clienteEl) clienteEl.value = "";
+  if (enderecoEl) enderecoEl.value = "";
+
+  alert("Pedido enviado para os Motoboys!");
+};
+
+
+// ✅ 3) Carregar pedidos do restaurante em tempo real
 function carregarMeusPedidos() {
-    const q = query(collection(db, "pedidos"), where("restauranteId", "==", usuarioAtual.uid));
-    onSnapshot(q, (snapshot) => {
-        const lista = document.getElementById("listaPedidos");
-        lista.innerHTML = "";
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            const li = document.createElement("li");
-            li.className = "pedido";
-            li.innerHTML = `<strong>${p.cliente}</strong> - Status: ${p.status}`;
-            lista.appendChild(li);
-        });
+  const lista = document.getElementById("listaPedidos");
+  if (!lista) return;
+
+  lista.innerHTML = "Carregando...";
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("restauranteId", "==", usuarioAtual.uid)
+  );
+
+  onSnapshot(q, (snapshot) => {
+    lista.innerHTML = "";
+
+    if (snapshot.empty) {
+      lista.innerHTML = "<li>Nenhum pedido ainda.</li>";
+      return;
+    }
+
+    snapshot.forEach((d) => {
+      const p = d.data();
+      lista.innerHTML += `<li><strong>${p.cliente}</strong> - ${p.status}</li>`;
     });
+  });
 }
 
-// FUNÇÃO SAIR (CORRIGIDA PARA INDEX.HTML)
-window.sair = function() {
-    signOut(auth).then(() => {
-        window.location.href = "index.html";
-    }).catch((error) => {
-        console.error("Erro ao sair:", error);
-    });
-}
+
+// ✅ 4) Sair
+window.sair = function () {
+  signOut(auth).then(() => window.location.href = "login.html");
+};

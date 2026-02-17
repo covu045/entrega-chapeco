@@ -2,23 +2,54 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel Geral - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Geral - Admin 🔥</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div style="width: 90%; max-width: 800px; margin: auto; color: white;">
-        <h1>Painel Admin 🔥</h1>
-        
-        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-            <div class="card" style="flex: 1; color: #333;">
-                <h3>Pedidos</h3>
+<body class="admin-body">
+
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Painel Administrativo 🔥</h1>
+            <button onclick="sair()" class="btn-sair-topo">Sair</button>
+        </header>
+
+        <div class="dashboard-cards">
+            <div class="card-stat">
+                <h3>Total</h3>
                 <p id="totalPedidos">0</p>
             </div>
-            <button onclick="sair()" style="width: auto; background: #ff4b2b;">Sair</button>
+            <div class="card-stat yellow">
+                <h3>Pendentes</h3>
+                <p id="totalPendentes">0</p>
+            </div>
+            <div class="card-stat blue">
+                <h3>A Caminho</h3>
+                <p id="totalCaminho">0</p>
+            </div>
+            <div class="card-stat green">
+                <h3>Entregues</h3>
+                <p id="totalEntregues">0</p>
+            </div>
         </div>
 
-        <h3 style="text-align: left;">Relatório de Pedidos</h3>
-        <ul id="listaPedidos" style="padding: 0;"></ul>
+        <section class="admin-content">
+            <h3>Monitoramento em Tempo Real</h3>
+            <div class="table-container">
+                <table id="tabelaAdmin">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Endereço</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                        </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <script type="module" src="./js/admin.js"></script>
