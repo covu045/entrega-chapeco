@@ -1,9 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+<<<<<<< HEAD
     <meta charset="UTF-8">
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
+=======
+  <meta charset="UTF-8">
+  <title>Login Real 🚀</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      padding-top: 100px;
+      color: white;
+    }
+    input { width: 250px; height: 35px; margin: 10px; font-size: 16px; border-radius: 5px; border: none; padding: 0 10px; }
+    button { width: 200px; height: 40px; background: white; border: none; cursor: pointer; font-size: 16px; font-weight: bold; border-radius: 5px; color: #764ba2; }
+    #msg { margin-top: 20px; font-weight: bold; }
+  </style>
+>>>>>>> 31dabdcebcb67e708749791855f8cff6bb2eb6c8
 </head>
 <body>
     <div class="card">
@@ -14,6 +31,7 @@
         <p id="msg"></p>
     </div>
 
+<<<<<<< HEAD
     <script type="module">
         import { auth, db } from "./js/firebase.js";
         import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -34,5 +52,76 @@
             }
         });
     </script>
+=======
+<h1>Sistema de Entregas 🚀</h1>
+
+<input type="email" id="email" placeholder="Seu E-mail"><br>
+<input type="password" id="senha" placeholder="Sua Senha"><br>
+
+<button onclick="entrar()">Entrar</button>
+
+<p id="msg"></p>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // SUAS CONFIGURAÇÕES REAIS (Copiadas das suas fotos)
+  const firebaseConfig = {
+    apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
+    authDomain: "entrega-chapeco.firebaseapp.com",
+    projectId: "entrega-chapeco",
+    storageBucket: "entrega-chapeco.firebasestorage.app",
+    messagingSenderId: "697262455182",
+    appId: "1:697262455182:web:28405a7efa733786e68cdf"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.entrar = function() {
+    let email = document.getElementById("email").value;
+    let senha = document.getElementById("senha").value;
+    let msg = document.getElementById("msg");
+
+    msg.innerHTML = "Verificando dados...";
+
+    signInWithEmailAndPassword(auth, email, senha)
+      .then(() => {
+        msg.innerHTML = "Usuário autenticado! Verificando cargo...";
+      })
+      .catch((error) => {
+        msg.innerHTML = "Erro: " + error.message;
+        console.error(error);
+      });
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      console.log("UID logado:", user.uid); // Isso vai aparecer no F12 para te ajudar
+      
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const tipo = userSnap.data().tipo;
+        console.log("Tipo encontrado:", tipo);
+
+        if (tipo === "admin") window.location.href = "admin.html";
+        else if (tipo === "motoboy") window.location.href = "motoboy.html";
+        else if (tipo === "restaurante") window.location.href = "restaurante.html";
+        else document.getElementById("msg").innerHTML = "Cargo '" + tipo + "' não reconhecido.";
+      } else {
+        // Se cair aqui, o ID do documento no Firestore está ERRADO
+        document.getElementById("msg").innerHTML = "Erro: UID " + user.uid + " não encontrado na coleção 'usuarios'.";
+      }
+    }
+  });
+</script>
+
+
+>>>>>>> 31dabdcebcb67e708749791855f8cff6bb2eb6c8
 </body>
 </html>
