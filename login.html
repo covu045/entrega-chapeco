@@ -28,54 +28,64 @@
 <p id="msg"></p>
 
 <script type="module">
-  // 1. Conectar com o seu arquivo de configuração
-  import { auth, db } from "./js/firebase.js";
-  import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // 2. Função que roda quando você clica no botão
+  // SUAS CONFIGURAÇÕES REAIS (Copiadas das suas fotos)
+  const firebaseConfig = {
+    apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
+    authDomain: "entrega-chapeco.firebaseapp.com",
+    projectId: "entrega-chapeco",
+    storageBucket: "entrega-chapeco.firebasestorage.app",
+    messagingSenderId: "697262455182",
+    appId: "1:697262455182:web:28405a7efa733786e68cdf"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
   window.entrar = function() {
     let email = document.getElementById("email").value;
     let senha = document.getElementById("senha").value;
     let msg = document.getElementById("msg");
 
-    msg.innerHTML = "Verificando...";
+    msg.innerHTML = "Verificando dados...";
 
-    // Faz o login no Firebase Authentication
     signInWithEmailAndPassword(auth, email, senha)
       .then(() => {
-        msg.innerHTML = "Logado com sucesso!";
+        msg.innerHTML = "Usuário autenticado! Verificando cargo...";
       })
       .catch((error) => {
-        msg.innerHTML = "Erro: Usuário não encontrado ou senha errada.";
-        console.error(error.message);
+        msg.innerHTML = "Erro: " + error.message;
+        console.error(error);
       });
   }
 
-  // 3. O PORTEIRO: Quando o login der certo, ele olha o "tipo" no banco
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      // Vai na pasta "usuarios" e procura o documento com o ID igual ao UID do login
+      console.log("UID logado:", user.uid); // Isso vai aparecer no F12 para te ajudar
+      
       const userRef = doc(db, "usuarios", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        const tipo = userSnap.data().tipo; // Pega o valor "admin", "motoboy" ou "restaurante"
+        const tipo = userSnap.data().tipo;
+        console.log("Tipo encontrado:", tipo);
 
-        // Redireciona para a página certa
-        if (tipo === "admin") {
-          window.location.href = "admin.html";
-        } else if (tipo === "motoboy") {
-          window.location.href = "motoboy.html";
-        } else if (tipo === "restaurante") {
-          window.location.href = "restaurante.html";
-        }
+        if (tipo === "admin") window.location.href = "admin.html";
+        else if (tipo === "motoboy") window.location.href = "motoboy.html";
+        else if (tipo === "restaurante") window.location.href = "restaurante.html";
+        else document.getElementById("msg").innerHTML = "Cargo '" + tipo + "' não reconhecido.";
       } else {
-        document.getElementById("msg").innerHTML = "Erro: Seu usuário não tem um cargo no banco de dados.";
+        // Se cair aqui, o ID do documento no Firestore está ERRADO
+        document.getElementById("msg").innerHTML = "Erro: UID " + user.uid + " não encontrado na coleção 'usuarios'.";
       }
     }
   });
 </script>
+
 
 </body>
 </html>
