@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Área Motoboy</title>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,7 +10,14 @@
       background: #e6f7ff;
       padding: 20px;
     }
-
+    h1 { margin-bottom: 5px; }
+    .contagem { margin-bottom: 10px; font-weight: bold; }
+    .filtros button {
+      margin: 5px; padding: 8px 16px;
+      border: none; border-radius: 5px;
+      background: #007bff; color: white; cursor: pointer;
+    }
+    .filtros button.active { background: #0056b3; }
     .pedido {
       background: white;
       padding: 20px;
@@ -20,42 +26,39 @@
       max-width: 400px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       line-height: 1.6;
+      transition: 0.3s;
+      position: relative;
     }
-
-    button {
-      background: #ff9800;
-      border: none;
-      padding: 10px 20px;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-top: 10px;
-      font-weight: bold;
+    .pedido.entregue { background: #d4edda; border-left: 5px solid #28a745; }
+    .pedido.novo { animation: piscar 1s ease infinite; }
+    @keyframes piscar { 0%,100%{background-color:#fff3cd;}50%{background-color:#ffeeba;} }
+    button.pedido-btn {
+      background:#ff9800; border:none; padding:10px 20px; color:white; cursor:pointer;
+      border-radius:5px; margin-top:10px; font-weight:bold;
     }
-
-    button:hover {
-      background: #e68a00;
-    }
-
-    .voltar {
-      display: inline-block;
-      margin-top: 20px;
-      text-decoration: none;
-      color: #007bff;
-    }
+    button.pedido-btn:hover { background:#e68a00; }
+    button.pedido-btn:disabled { background:#aaa; cursor:default; }
+    .voltar { display:inline-block; margin-top:20px; text-decoration:none; color:#007bff; }
   </style>
 </head>
-
 <body>
 
 <h1>Área Motoboy 🏍️</h1>
+<div class="contagem" id="contagemPedidos">Carregando pedidos...</div>
 
-<div id="listaPedidos">Carregando pedidos...</div>
+<div class="filtros">
+  <button id="filtroTodos" class="active">Todos</button>
+  <button id="filtroPendentes">Pendentes</button>
+  <button id="filtroEntregues">Entregues</button>
+</div>
+
+<ul id="listaPedidos"></ul>
 
 <a href="index.html" class="voltar">⬅ Voltar</a>
 
+<!-- Som de alerta -->
+<audio id="somAlerta" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
 <script type="module" src="js/motoboy.js"></script>
-
-
 </body>
 </html>

@@ -1,69 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Login</title>
-
-  <style>
-    body{
-      font-family: Arial;
-      text-align: center;
-      background: linear-gradient(to right, #667eea, #764ba2);
-      padding-top: 100px;
-      color: white;
-    }
-
-    input{
-      width: 250px;
-      height: 35px;
-      margin: 10px;
-      font-size: 16px;
-    }
-
-    button{
-      width: 200px;
-      height: 40px;
-      background: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
-  </style>
-
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="card">
+        <h1>Entrar 🚀</h1>
+        <input type="email" id="usuario" placeholder="Seu E-mail">
+        <input type="password" id="senha" placeholder="Sua Senha">
+        <button onclick="entrar()">Entrar</button>
+        <p id="msg"></p>
+    </div>
 
-<h1>Login 🚀</h1>
+    <script type="module">
+        import { auth, db } from "./js/firebase.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<input type="text" id="usuario" placeholder="Usuário"><br>
-<input type="password" id="senha" placeholder="Senha"><br>
+        window.entrar = function() {
+            let email = document.getElementById("usuario").value;
+            let senha = document.getElementById("senha").value;
+            signInWithEmailAndPassword(auth, email, senha).catch(e => document.getElementById("msg").innerHTML = "Erro ao logar");
+        }
 
-<button onclick="entrar()">Entrar</button>
-
-<p id="msg"></p>
-
-<script>
-
-function entrar(){
-
-  let usuario = document.getElementById("usuario").value;
-  let senha = document.getElementById("senha").value;
-
-  if(usuario == "restaurante" && senha == "123"){
-    window.location.href = "restaurante.html";
-  }
-  else if(usuario == "motoboy" && senha == "123"){
-    window.location.href = "motoboy.html";
-  }
-  else if(usuario == "admin" && senha == "123"){
-    window.location.href = "admin.html";
-  }
-  else{
-    document.getElementById("msg").innerHTML = "Usuário ou senha errado 😢";
-  }
-
-}
-
-</script>
-
+        onAuthStateChanged(auth, async (user) => {
+            if(user) {
+                const docSnap = await getDoc(doc(db, "usuarios", user.uid));
+                if(docSnap.exists()) {
+                    window.location.href = docSnap.data().tipo + ".html";
+                }
+            }
+        });
+    </script>
 </body>
 </html>

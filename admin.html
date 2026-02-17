@@ -1,109 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Painel Admin</title>
-
-  <style>
-    body{
-      font-family: Arial;
-      background: #111;
-      color: white;
-      text-align: center;
-      padding-top: 50px;
-    }
-
-    .card{
-      background: #1e1e1e;
-      padding: 20px;
-      margin: 15px;
-      border-radius: 12px;
-      font-size: 22px;
-      box-shadow: 0 0 20px rgba(255,0,0,0.4);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Painel Geral - Admin</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div style="width: 90%; max-width: 800px; margin: auto; color: white;">
+        <h1>Painel Admin 🔥</h1>
+        
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+            <div class="card" style="flex: 1; color: #333;">
+                <h3>Pedidos</h3>
+                <p id="totalPedidos">0</p>
+            </div>
+            <button onclick="sair()" style="width: auto; background: #ff4b2b;">Sair</button>
+        </div>
 
-<h1>Painel Admin 👑</h1>
+        <h3 style="text-align: left;">Relatório de Pedidos</h3>
+        <ul id="listaPedidos" style="padding: 0;"></ul>
+    </div>
 
-<button onclick="filtrar('pendente')">Pendentes</button>
-<button onclick="filtrar('em_rota')">Em rota</button>
-<button onclick="filtrar('entregue')">Entregues</button>
-
-<div id="listaPedidos"></div>
-
-
-<div class="card">Total: <span id="total">0</span></div>
-<div class="card">Pendentes: <span id="pendente">0</span></div>
-<div class="card">Em rota: <span id="emRota">0</span></div>
-<div class="card">Entregues: <span id="entregue">0</span></div>
-
-<script type="module">
-
-  import { query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-window.filtrar = async function(statusFiltro){
-
-  const q = query(collection(db, "pedidos"), where("status", "==", statusFiltro));
-  const querySnapshot = await getDocs(q);
-
-  document.getElementById("listaPedidos").innerHTML = "";
-
-  querySnapshot.forEach((doc) => {
-    const pedido = doc.data();
-
-    document.getElementById("listaPedidos").innerHTML += `
-      <div class="card">
-        Cliente: ${pedido.cliente} <br>
-        Status: ${pedido.status}
-      </div>
-    `;
-  });
-
-};
-
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyA9vMk01-8YCiLXegszeiHXSGeBvy91N2U",
-    authDomain: "entrega-chapeco.firebaseapp.com",
-    projectId: "entrega-chapeco",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-async function carregarContadores() {
-
-  const querySnapshot = await getDocs(collection(db, "pedidos"));
-
-  let total = 0;
-  let pendente = 0;
-  let emRota = 0;
-  let entregue = 0;
-
-  querySnapshot.forEach((doc) => {
-    total++;
-
-    const status = doc.data().status;
-
-    if (status === "pendente") pendente++;
-    if (status === "em_rota") emRota++;
-    if (status === "entregue") entregue++;
-  });
-
-  document.getElementById("total").innerText = total;
-  document.getElementById("pendente").innerText = pendente;
-  document.getElementById("emRota").innerText = emRota;
-  document.getElementById("entregue").innerText = entregue;
-}
-
-carregarContadores();
-
-</script>
-
+    <script type="module" src="./js/admin.js"></script>
 </body>
 </html>
