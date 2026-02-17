@@ -1,67 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Área Motoboy</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #e6f7ff;
-      padding: 20px;
-    }
-    h1 { margin-bottom: 5px; }
-    .contagem { margin-bottom: 10px; font-weight: bold; }
-    .filtros button {
-      margin: 5px; padding: 8px 16px;
-      border: none; border-radius: 5px;
-      background: #007bff; color: white; cursor: pointer;
-    }
-    .filtros button.active { background: #0056b3; }
-    .pedido {
-      background: white;
-      padding: 20px;
-      margin: 15px auto;
-      border-radius: 10px;
-      max-width: 400px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      line-height: 1.6;
-      transition: 0.3s;
-      position: relative;
-    }
-    .pedido.entregue { background: #d4edda; border-left: 5px solid #28a745; }
-    .pedido.novo { animation: piscar 1s ease infinite; }
-    @keyframes piscar { 0%,100%{background-color:#fff3cd;}50%{background-color:#ffeeba;} }
-    button.pedido-btn {
-      background:#ff9800; border:none; padding:10px 20px; color:white; cursor:pointer;
-      border-radius:5px; margin-top:10px; font-weight:bold;
-    }
-    button.pedido-btn:hover { background:#e68a00; }
-    button.pedido-btn:disabled { background:#aaa; cursor:default; }
-    .voltar { display:inline-block; margin-top:20px; text-decoration:none; color:#007bff; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área Motoboy 🏍️</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Área Motoboy 🏍️</h1>
-<div class="contagem" id="contagemPedidos">Carregando pedidos...</div>
+    <div class="container">
+        <h1>Área Motoboy 🏍️</h1>
+        
+        <div class="card-info">
+            <span id="contagemPedidos">Verificando pedidos...</span>
+        </div>
 
-<<<<<<< HEAD
-<div class="filtros">
-  <button id="filtroTodos" class="active">Todos</button>
-  <button id="filtroPendentes">Pendentes</button>
-  <button id="filtroEntregues">Entregues</button>
-</div>
+        <ul id="listaPedidos"></ul>
 
-=======
->>>>>>> 31dabdcebcb67e708749791855f8cff6bb2eb6c8
-<ul id="listaPedidos"></ul>
+        <div class="controles-footer">
+            <button onclick="sair()" class="btn-sair">Sair do Sistema</button>
+            <br>
+            <a href="index.html" class="link-voltar">⬅ Voltar</a>
+        </div>
+    </div>
 
-<a href="index.html" class="voltar">⬅ Voltar</a>
+    <audio id="somAlerta" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
-<!-- Som de alerta -->
-<audio id="somAlerta" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+    <script type="module" src="js/motoboy.js"></script>
 
-<script type="module" src="js/motoboy.js"></script>
 </body>
 </html>

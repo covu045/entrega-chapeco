@@ -1,18 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-
-  <link rel="manifest" href="manifest.json">
-
-  <title>Sistema Entregas</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Entregas</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<script>
-  window.location.href = "login.html";
-</script>
+    <div class="card">
+        <h1>Entrar 🚀</h1>
+        
+        <input type="email" id="usuario" placeholder="Seu E-mail">
+        <input type="password" id="senha" placeholder="Sua Senha">
+        
+        <button onclick="entrar()">Entrar</button>
+        
+        <p id="msg"></p>
+    </div>
+
+    <script type="module">
+        // Importamos a conexão que você limpou no firebase.js
+        import { auth, db } from "./js/firebase.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Função de clique no botão
+        window.entrar = function() {
+            let email = document.getElementById("usuario").value;
+            let senha = document.getElementById("senha").value;
+            let msg = document.getElementById("msg");
+
+            if (!email || !senha) {
+                msg.innerHTML = "Preencha todos os campos! ⚠️";
+                return;
+            }
+
+            msg.innerHTML = "Verificando...";
+
+            signInWithEmailAndPassword(auth, email, senha)
+                .catch((error) => {
+                    msg.innerHTML = "Erro: E-mail ou senha incorretos. ❌";
+                    console.error("Erro de login:", error.message);
+                });
+        };
+
+        // O "Porteiro": Quando o login funciona, ele vê para onde você vai
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById("msg").innerHTML = "Usuário autenticado! Verificando cargo...";
+                
+                try {
+                    const docRef = doc(db, "usuarios", user.uid);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        const tipo = docSnap.data().tipo;
+                        // Redireciona para admin.html, motoboy.html ou restaurante.html
+                        window.location.href = tipo + ".html";
+                    } else {
+                        document.getElementById("msg").innerHTML = "Erro: Cargo não encontrado no banco. 🧐";
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar cargo:", error);
+                    document.getElementById("msg").innerHTML = "Erro ao conectar com o banco de dados.";
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>
