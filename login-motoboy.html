@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Motoboy - Entrega Chapecó</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Entrar Motoboy 🏍️</h1>
+        
+        <input type="email" id="usuario" placeholder="Seu E-mail">
+        <input type="password" id="senha" placeholder="Sua Senha">
+        
+        <button onclick="entrar()">Entrar</button>
+        
+        <p id="msg"></p>
+        <a href="cadastro-motoboy.html" style="color: #764ba2; font-size: 14px;">Não tem conta? Cadastre-se</a>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./js/firebase.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        window.entrar = function() {
+            let email = document.getElementById("usuario").value;
+            let senha = document.getElementById("senha").value;
+            let msg = document.getElementById("msg");
+
+            signInWithEmailAndPassword(auth, email, senha).catch((error) => {
+                msg.innerHTML = "E-mail ou senha incorretos. ❌";
+            });
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const docRef = doc(db, "usuarios", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().tipo === "motoboy") {
+                    window.location.href = "motoboy.html";
+                } else if (docSnap.exists()) {
+                    // Se um restaurante tentar logar aqui, o sistema avisa
+                    document.getElementById("msg").innerHTML = "Acesse pelo login de Lojas! 🏬";
+                }
+            }
+        });
+    </script>
+</body>
+</html>

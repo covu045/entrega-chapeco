@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro Motoboy 🏍️</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Novo Motoboy 🏍️</h1>
+
+        <input type="text" id="nomeMotoboy" placeholder="Seu Nome Completo">
+        <input type="text" id="documento" placeholder="CPF ou Placa da Moto">
+        <input type="email" id="email" placeholder="E-mail de Login">
+        <input type="password" id="senha" placeholder="Crie uma Senha">
+        
+        <button onclick="cadastrarMotoboy()">Finalizar Cadastro</button>
+        
+        <p id="msg"></p>
+        <a href="index.html" style="color: #764ba2; font-size: 14px;">Voltar para o início</a>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./js/firebase.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        window.cadastrarMotoboy = async function() {
+            const nome = document.getElementById("nomeMotoboy").value.trim();
+            const docInfo = document.getElementById("documento").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const senha = document.getElementById("senha").value;
+            const msg = document.getElementById("msg");
+
+            if(!nome || !docInfo || !email || !senha) {
+                msg.style.color = "red";
+                msg.innerHTML = "Preencha todos os campos! ⚠️";
+                return;
+            }
+
+            try {
+                const resultado = await createUserWithEmailAndPassword(auth, email, senha);
+                const user = resultado.user;
+
+                await setDoc(doc(db, "usuarios", user.uid), {
+                    nome: nome,
+                    documento: docInfo,
+                    email: email,
+                    tipo: "motoboy",
+                    uid: user.uid,
+                    criadoEm: new Date()
+                });
+
+                msg.style.color = "green";
+                msg.innerHTML = "Bem-vindo à equipe! 🎉";
+
+                setTimeout(() => window.location.href = "motoboy.html", 1200);
+
+            } catch (error) {
+                msg.style.color = "red";
+                msg.innerHTML = "Erro: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
